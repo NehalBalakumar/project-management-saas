@@ -5,6 +5,7 @@ const cors = require("cors");
 
 const authRoutes = require("./routes/authRoutes")
 
+const authMiddleware = require("./middleware/authMiddleware");
 dotenv.config();
 
 const app = express();
@@ -18,6 +19,13 @@ app.use("/api/auth", authRoutes)
 // Test Route
 app.get("/", (req, res) =>{
     res.send("API Working...");
+});
+
+app.get("/api/protected", authMiddleware, (req, res) => {
+    res.json({
+        message: "You accessed protected route",
+        user: req.user
+    });
 });
 
 // Connect MonngoDB
