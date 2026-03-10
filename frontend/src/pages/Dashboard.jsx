@@ -8,6 +8,7 @@ function Dashboard() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [projects, setProjects] = useState([]);
 
   // check login
   useEffect(() => {
@@ -18,14 +19,45 @@ function Dashboard() {
     }
   }, [navigate]);
 
+  // fetch projects
+  const fetchProjects = async () => {
+
+    try {
+
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        "http://localhost:5000/api/projects",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      setProjects(res.data);
+
+    } catch (error) {
+      console.log(error);
+    }
+
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
   // logout
   const handleLogout = () => {
+
     localStorage.removeItem("token");
     navigate("/");
+
   };
 
   // create project
   const createProject = async (e) => {
+
     e.preventDefault();
 
     try {
@@ -45,15 +77,49 @@ function Dashboard() {
         }
       );
 
-      alert("Project created!");
+      alert("Project created");
 
       setName("");
       setDescription("");
 
+      fetchProjects();
+
     } catch (error) {
+
       console.log(error);
       alert("Error creating project");
+
     }
+
+  };
+
+  // delete project
+  const deleteProject = async (id) => {
+
+    try {
+
+      const token = localStorage.getItem("token");
+
+      await axios.delete(
+        `http://localhost:5000/api/projects/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      alert("Project deleted");
+
+      fetchProjects();
+
+    } catch (error) {
+
+      console.log(error);
+      alert("Error deleting project");
+
+    }
+
   };
 
   return (
@@ -72,6 +138,8 @@ function Dashboard() {
         Logout
       </button>
 
+      {/* Stats cards */}
+
       <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
 
         <div style={{
@@ -80,7 +148,7 @@ function Dashboard() {
           borderRadius: "8px",
           width: "150px"
         }}>
-          <h3>12</h3>
+          <h3>{projects.length}</h3>
           <p>Total Projects</p>
         </div>
 
@@ -90,7 +158,7 @@ function Dashboard() {
           borderRadius: "8px",
           width: "150px"
         }}>
-          <h3>35</h3>
+          <h3>0</h3>
           <p>Total Tasks</p>
         </div>
 
@@ -100,11 +168,13 @@ function Dashboard() {
           borderRadius: "8px",
           width: "150px"
         }}>
-          <h3>5</h3>
+          <h3>1</h3>
           <p>Team Members</p>
         </div>
 
       </div>
+
+      {/* Create project */}
 
       <h3 style={{ marginTop: "40px" }}>Create Project</h3>
 
@@ -133,6 +203,40 @@ function Dashboard() {
         </button>
 
       </form>
+
+      {/* Project list */}
+
+      <h3 style={{ marginTop: "40px" }}>Your Projects</h3>
+
+      {projects.map((project) => (
+
+        <div
+          key={project._id}
+          style={{
+            background: "#eee",
+            padding: "12px",
+            marginTop: "10px",
+            borderRadius: "6px"
+          }}
+        >
+
+          <h4>{project.name}</h4>
+          <p>{project.description}</p>
+
+          <button
+            onClick={() => deleteProject(project._id)}
+            style={{
+              marginTop: "5px",
+              padding: "5px 10px",
+              cursor: "pointer"
+            }}
+          >
+            Delete
+          </button>
+
+        </div>
+
+      ))}
 
     </div>
   );
